@@ -1,0 +1,5 @@
+,Rep. 1: Z-Score (9 vars),Rep. 2: Binning (9 vars),Rep. 3: Binning Agrupado (7 vars)
+Accuracy,0.9445 ± 0.0154,0.9481 ± 0.0104,0.9660 ± 0.0118
+Precision,0.8949,0.9191,0.9540
+Recall,0.9532,0.9328,0.9482
+F1,0.9226,0.9255,0.9504
