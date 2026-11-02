@@ -11,11 +11,12 @@ PYTHON_INTERPRETER = python
 #################################################################################
 
 
-## Install Python dependencies
+## Install Python dependencies and the project package
 .PHONY: requirements
 requirements:
 	$(PYTHON_INTERPRETER) -m pip install -U pip
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	$(PYTHON_INTERPRETER) -m pip install -e .
 	
 
 
@@ -60,7 +61,30 @@ create_environment:
 ## Make dataset
 .PHONY: data
 data: requirements
-	$(PYTHON_INTERPRETER) wisconsin_cancer_analysis/dataset.py
+	$(PYTHON_INTERPRETER) -m wisconsin_cancer_analysis.dataset
+
+
+## Build the three data representations
+.PHONY: features
+features:
+	$(PYTHON_INTERPRETER) -m wisconsin_cancer_analysis.features
+
+
+## Train and evaluate the decision tree on each representation
+.PHONY: train
+train:
+	$(PYTHON_INTERPRETER) -m wisconsin_cancer_analysis.modeling.train
+
+
+## Regenerate all report figures
+.PHONY: figures
+figures:
+	$(PYTHON_INTERPRETER) -m wisconsin_cancer_analysis.plots
+
+
+## Run the full pipeline end to end
+.PHONY: pipeline
+pipeline: data features train figures
 
 
 #################################################################################

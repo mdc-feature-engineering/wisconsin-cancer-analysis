@@ -6,7 +6,28 @@
 
 Analisis de datos sobre el cancer de mama
 
-## Project Organization
+## Ejecución
+
+```bash
+python -m venv .venv            # o: make create_environment
+.venv\Scripts\activate          # Windows
+
+make pipeline                   # instala requirements + corre data -> features -> train -> figures
+```
+
+Cada etapa tambien puede correrse por separado:
+
+```bash
+python -m wisconsin_cancer_analysis.dataset          # limpieza -> data/processed/breast_cancer_limpio.csv
+python -m wisconsin_cancer_analysis.features         # 3 representaciones -> data/processed/
+python -m wisconsin_cancer_analysis.modeling.train   # metricas -> reports/ ; modelo -> models/
+python -m wisconsin_cancer_analysis.modeling.predict # inferencia con el modelo guardado
+python -m wisconsin_cancer_analysis.plots            # figuras -> reports/figures/
+```
+
+Los notebooks en `notebooks/` usan estas mismas funciones del paquete.
+
+## Organización del proyecto
 
 ```
 ├── LICENSE            <- Open-source license if one is chosen
@@ -15,8 +36,12 @@ Analisis de datos sobre el cancer de mama
 ├── data
 │   ├── external       <- Data from third party sources.
 │   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
+│   ├── processed      <- The final, canonical data sets for modeling
+│   │                     (breast_cancer_limpio, representacion_1_zscore,
+│   │                      representacion_2_binning, representacion_3_atipia,
+│   │                      estadisticas_descriptivas_cancer).
+│   └── raw            <- The original, immutable data dump
+│                         (breast_cancer_original.csv).
 │
 ├── docs               <- A default mkdocs project; see www.mkdocs.org for details
 │
@@ -32,6 +57,7 @@ Analisis de datos sobre el cancer de mama
 ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
 │
 ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
+│   │                    (metricas_cv.csv, metricas_test.csv)
 │   └── figures        <- Generated graphics and figures to be used in reporting
 │
 ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
@@ -52,10 +78,7 @@ Analisis de datos sobre el cancer de mama
     ├── modeling                
     │   ├── __init__.py 
     │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
+    │   └── train.py            <- Code to train and evaluate models per representation
     │
     └── plots.py                <- Code to create visualizations
-```
-
---------
 
