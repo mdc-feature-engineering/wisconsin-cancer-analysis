@@ -1,4 +1,9 @@
 site_name: wisconsin-cancer-analysis
-# 
+site_description: >-
+  Representación de datos y clasificación benigno/maligno sobre
+  Breast Cancer Wisconsin (Original) — proyecto de Ingeniería de Características.
 site_author: MCD
-# 
+
+nav:
+  - Inicio: index.md
+  - Getting Started: getting-started.md
