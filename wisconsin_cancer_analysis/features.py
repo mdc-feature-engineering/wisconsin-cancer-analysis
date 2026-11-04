@@ -3,10 +3,10 @@ from pathlib import Path
 from loguru import logger
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import KBinsDiscretizer, StandardScaler
 import typer
 
-from wisconsin_cancer_analysis.config import PROCESSED_DATA_DIR
+from wisconsin_cancer_analysis.config import PROCESSED_DATA_DIR, REPORTS_DIR
 from wisconsin_cancer_analysis.dataset import FEATURE_COLS, TARGET_COL
 
 app = typer.Typer()
@@ -62,10 +62,37 @@ def build_rep3_atipia(df_clean: pd.DataFrame) -> pd.DataFrame:
     return df_rep
 
 
+def build_rep2_kmeans(df_clean: pd.DataFrame) -> pd.DataFrame:
+    """Rep. 2b: discretizacion en 3 categorias con umbrales aprendidos por
+    KMeans (k=3) por variable, en vez de la regla clinica fija."""
+    kbd = KBinsDiscretizer(n_bins=3, encode="ordinal", strategy="kmeans", subsample=None)
+    X = kbd.fit_transform(df_clean[FEATURE_COLS]).astype("int64")
+    df_rep = pd.DataFrame(X, columns=[f"{c}_kmbin" for c in FEATURE_COLS])
+    df_rep[TARGET_COL] = df_clean[TARGET_COL].values
+    return df_rep
+
+
+def kmeans_umbrales(df_clean: pd.DataFrame) -> pd.DataFrame:
+    """Cortes aprendidos por KMeans (k=3) por variable, comparables con la
+    regla clinica fija (1-3 / 4-6 / 7-10)."""
+    kbd = KBinsDiscretizer(n_bins=3, encode="ordinal", strategy="kmeans", subsample=None)
+    kbd.fit(df_clean[FEATURE_COLS])
+    filas = {}
+    for col, edges in zip(FEATURE_COLS, kbd.bin_edges_):
+        internos = edges[1:-1]  # sin min ni max
+        filas[col] = {
+            "Corte Bajo|Moderado": f"{internos[0]:.2f}",
+            "Corte Moderado|Alto": f"{internos[1]:.2f}",
+            "Regla clinica": "3 y 6",
+        }
+    return pd.DataFrame(filas)
+
+
 REPRESENTATIONS = {
     "representacion_1_zscore.csv": build_rep1_zscore,
     "representacion_2_binning.csv": build_rep2_binning,
     "representacion_3_atipia.csv": build_rep3_atipia,
+    "representacion_2b_kmeans.csv": build_rep2_kmeans,
 }
 
 
@@ -107,6 +134,11 @@ def main(
         out = output_dir / filename
         df_rep.to_csv(out, index=False)
         logger.success(f"{filename}: {df_rep.shape}")
+
+    umbrales = kmeans_umbrales(df_clean)
+    out_u = REPORTS_DIR / "binning_kmeans_umbrales.csv"
+    umbrales.to_csv(out_u, index=False)
+    logger.success(f"{out_u.name}: {umbrales.shape}")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import FunctionTransformer, StandardScaler
+from sklearn.preprocessing import FunctionTransformer, KBinsDiscretizer, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 import typer
 
@@ -45,6 +45,9 @@ def build_pipelines() -> dict[str, Pipeline]:
     return {
         "Rep. 1: Z-Score (9 vars)": make_pipeline(StandardScaler()),
         "Rep. 2: Binning (9 vars)": make_pipeline(FunctionTransformer(binning_rep2)),
+        "Rep. 2b: Binning KMeans (9 vars)": make_pipeline(
+            KBinsDiscretizer(n_bins=3, encode="ordinal", strategy="kmeans")
+        ),
         REP3_NAME: make_pipeline(FunctionTransformer(binning_rep3)),
     }
 

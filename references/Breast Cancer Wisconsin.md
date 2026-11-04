@@ -87,6 +87,19 @@ Filtra ruido de medición y produce reglas de decisión simples e interpretables
 en términos clínicos. Orientada a modelos basados en reglas (Árboles de
 Decisión).
 
+### Representación 2b — Binning por clustering (KMeans)
+
+Variante de R2 donde los umbrales Bajo/Moderado/Alto se **aprenden de los
+datos** en vez de fijarse clínicamente: KMeans con k=3 por variable
+(`KBinsDiscretizer`, estrategia k-means), y los clusters ordenados por
+centroide se mapean a 0/1/2.
+
+Los cortes aprendidos quedaron cercanos a la regla clínica (Bajo|Moderado ≈
+3.3–4.3, Moderado|Alto ≈ 7.3 vs. fijos 3 y 6), pero **distintos por
+variable**: se gana ajuste a cada distribución a costa de la interpretación
+uniforme de la regla clínica. Los umbrales se aprenden solo del train dentro
+del pipeline (sin fuga de datos).
+
 ### Representación 3 — Binning + índice de Atipia Celular (7 variables)
 
 Las células cancerosas se caracterizan por un crecimiento anormal y
@@ -139,26 +152,30 @@ del pipeline de cada pliegue, sin fuga de datos.
 
 Métricas sobre el **test independiente** (20%):
 
-| Métrica | R1: Z-score (9 vars) | R2: Binning (9 vars) | R3: Atipia (7 vars) |
-| :--- | :---: | :---: | :---: |
-| Accuracy | 0.9286 | 0.9357 | **0.9500** |
-| Precision | 0.9318 | 0.9333 | **0.9362** |
-| Recall | 0.8542 | 0.8750 | **0.9167** |
-| F1 Score | 0.8913 | 0.9032 | **0.9263** |
+| Métrica | R1: Z-score (9 vars) | R2: Binning (9 vars) | R2b: KMeans (9 vars) | R3: Atipia (7 vars) |
+| :--- | :---: | :---: | :---: | :---: |
+| Accuracy | 0.9286 | 0.9357 | **0.9571** | 0.9500 |
+| Precision | 0.9318 | 0.9333 | 0.9200 | **0.9362** |
+| Recall | 0.8542 | 0.8750 | **0.9583** | 0.9167 |
+| F1 Score | 0.8913 | 0.9032 | **0.9388** | 0.9263 |
 
-**Análisis crítico:** R3 supera a R1 y R2 en *todas* las métricas usando solo 7
-variables —el índice `Atipia_Celular` concentra ~92% de la importancia Gini del
-árbol—. La ganancia más clara está en **recall** (0.92 vs. 0.85–0.88): con la
-representación agrupada el modelo deja escapar menos tumores malignos, lo que
-en diagnóstico médico es el error más costoso.
+**Análisis crítico:** en test, R2b (binning por KMeans) supera a las demás en
+accuracy, recall y F1 —los umbrales aprendidos de cada distribución capturaron
+mejor la frontera clínica que los cortes fijos—. En particular su **recall
+0.958** es el mejor: deja escapar menos tumores malignos, el error más
+costoso en diagnóstico. En validación cruzada, en cambio, R3 sigue liderando
+(F1 0.950), lo que sugiere que es la representación más estable y compacta
+—su índice `Atipia_Celular` concentra ~92% de la importancia Gini del árbol.
 
 **Reflexión:** la representación no solo afecta el desempeño sino la
 *interpretación*. R1 conserva magnitudes pero produce cortes poco intuitivos;
-R2/R3 sacrifican resolución a cambio de reglas que un médico puede leer
-directamente. Agrupar variables correlacionadas por su significado clínico
-(atipia) redujo redundancia **y** mejoró el modelo —la ingeniería de
-características guiada por el dominio superó a las transformaciones puramente
-estadísticas.
+R2/R2b sacrifican resolución por reglas legibles; R3 además reduce
+redundancia con conocimiento clínico. Dos aprendizajes clave: (1) dejar que
+los datos definan los umbrales (KMeans) mejoró el desempeño en test, aunque
+cada variable quedó con fronteras distintas —ajuste vs. interpretación
+uniforme—; (2) agrupar variables correlacionadas por su significado clínico
+(atipia) compite en métricas con solo 7 variables. La ingeniería de
+características —no el modelo— marcó la diferencia.
 
 ---
 

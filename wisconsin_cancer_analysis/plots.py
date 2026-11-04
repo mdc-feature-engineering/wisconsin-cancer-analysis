@@ -122,10 +122,11 @@ def plot_metricas_comparacion(
     df = df_test.astype(float).T
     fig, ax = plt.subplots(figsize=(9, 4.5))
     x = np.arange(len(df.columns))
-    width = 0.25
+    n_reps = len(df.index)
+    width = 0.8 / n_reps
     for i, rep in enumerate(df.index):
         vals = df.loc[rep].values
-        bars = ax.bar(x + (i - 1) * width, vals, width, label=rep)
+        bars = ax.bar(x + (i - (n_reps - 1) / 2) * width, vals, width, label=rep)
         ax.bar_label(bars, fmt="%.3f", fontsize=8, padding=2)
     ax.set_xticks(x, df.columns)
     ax.set_ylim(0.85, 1.02)
